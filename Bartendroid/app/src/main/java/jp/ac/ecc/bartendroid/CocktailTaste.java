@@ -13,7 +13,7 @@ package jp.ac.ecc.bartendroid;
 public enum CocktailTaste {
     SWEET,
     CLEAR,
-    ACID,
-    STRONG,
-    NORMAL,
+    SOUR,
+    BITTER,
+    SHIBUMI,
 }
