@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
+import android.media.session.PlaybackState;
 
 import java.util.ArrayList;
 
@@ -47,26 +48,31 @@ public class CocatailDB {
         return result;
     }
 
-    public ArrayList<String> getHaveMaterial(){
-        ArrayList<String> haveMaterial = new ArrayList<String>();
+    public ArrayList<Material> getHaveMaterial(){
+
         db = caktail.getReadableDatabase();
-        String sql = "SELECT m.material_name From have_material h JOIN material m" +
+        ArrayList<Material> material_list = new ArrayList<Material>();
+        String sql = "SELECT m.material_name, m.sweetnes, m.clear, m.bitter, m.sour, m.sibumi From have_material h JOIN material m" +
                         "ON h.material_id = m.l_id WHERE h.amount <> 0";
+
         try {
             Cursor cursor = db.rawQuery(sql.toString(), null);
 
             while (cursor.moveToNext()) {
-                caktails.add(cursor.getString(0));
+
+                material_list.add(new Material(cursor.getString(0), cursor.getInt(1), cursor.getInt(2), cursor.getInt(3),
+                                                cursor.getInt(4),cursor.getInt(5)));
+
             }
             cursor.close();
+        }catch (Exception e){
+
         } finally {
+
             db.close();
         }
 
-        return caktails;
-
-
-        return haveMaterial;
+        return material_list;
     }
     public boolean setMaterial(String material_name){
 
@@ -118,7 +124,7 @@ public class CocatailDB {
         return result;
     }
 
-    public boolean setMaterial(String material_name, int sweetness, int clear, int bitter, int sour, int sibumi){
+    public boolean setMaterial(Material material){
 
         boolean result = false;
         db = caktail.getWritableDatabase();
@@ -128,12 +134,12 @@ public class CocatailDB {
                     = db.compileStatement("INSERT INTO material(material_name, sweetness, clear, bitter, sour, sibumi) VALUES (?,?,?,?,?,?)");
             try {
 
-                    statement.bindString(1, material_name);
-                    statement.bindLong(2, sweetness);
-                    statement.bindLong(3, clear);
-                    statement.bindLong(4, bitter);
-                    statement.bindLong(5, sour);
-                    statement.bindLong(6, sibumi);
+                    statement.bindString(1, material.getMaterialName());
+                    statement.bindLong(2, material.getSweetness());
+                    statement.bindLong(3, material.getClear());
+                    statement.bindLong(4, material.getBitterness());
+                    statement.bindLong(5, material.getSourness());
+                    statement.bindLong(6, material.getShibumi());
                     statement.executeInsert();
 
 
@@ -147,7 +153,7 @@ public class CocatailDB {
 
             try{
 
-                statement2.bindLong(1, getMaterialId(material_name));
+                statement2.bindLong(1, getMaterialId(material.getMaterialName()));
                 statement2.executeInsert();
 
             }finally {
@@ -158,7 +164,7 @@ public class CocatailDB {
             SQLiteStatement statement3 = db.compileStatement("INSERT INTO have_material(material_id) VALUES(?)");
             try{
 
-                statement3.bindLong(1, getMaterialId(material_name));
+                statement3.bindLong(1, getMaterialId(material.getMaterialName()));
                 statement3.executeInsert();
             }finally {
                 statement3.close();
@@ -226,18 +232,18 @@ public class CocatailDB {
 
     }
 
-    public ArrayList<String> getMakableCaktail(ArrayList<String> materials) {
+    public ArrayList<Cocktail> getMakableCaktail(ArrayList<Material> materials) {
 
         int count = materials.size();
         int id = 0;
         StringBuilder sql = new StringBuilder("SELECT caktail_name FROM caktail WHERE ");
-        ArrayList<String> caktails = new ArrayList<String>();
+        ArrayList<Cocktail> caktails = new ArrayList<Cocktail>();
 
         for (int i = 0; i < count; i++) {
             sql.append("material" + (i + 1) + " IN(");
             for (int j = 0; j < count; j++) {
 
-                sql.append(getMaterialId(materials.get(j)));
+
                 if ((j + 1) != count) {
                     sql.append(",");
                 }
@@ -254,7 +260,7 @@ public class CocatailDB {
             Cursor cursor = db.rawQuery(sql.toString(), null);
 
             while (cursor.moveToNext()) {
-                 caktails.add(cursor.getString(0));
+                 
             }
             cursor.close();
         } finally {
