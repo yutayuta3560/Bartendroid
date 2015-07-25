@@ -25,9 +25,7 @@ public class CocatailDB {
 
         db = caktail.getWritableDatabase();
         boolean result = false;
-        if(getMaterialId(material) == -1){
-            setMaterial(material);
-        }
+
         db.beginTransaction();
         try{
             String sql = "UPDATE have_material SET amount = ? WHERE material_id = " + getMaterialId(material);
@@ -76,65 +74,6 @@ public class CocatailDB {
         return material_list;
     }
 
-    public boolean setMaterial(String material_name){
-
-        boolean result = false;
-        db = caktail.getWritableDatabase();
-        db.beginTransaction();
-        try {
-            SQLiteStatement statement
-                    = db.compileStatement("INSERT INTO material(material_name) VALUES (?)");
-            try {
-
-                statement.bindString(1, material_name);
-                statement.executeInsert();
-
-            }catch (Exception e){
-
-                Log.v("material", e.getMessage());
-
-            } finally {
-                statement.close();
-            }
-            db.setTransactionSuccessful();
-
-            // BAN
-            SQLiteStatement statement2 = db.compileStatement("INSERT INTO ban_material(material_id) VALUES(?)");
-
-            try {
-
-                statement2.bindLong(1, getMaterialId(material_name));
-                statement2.executeInsert();
-            }catch (Exception e){
-
-                Log.v("ban", e.getMessage());
-            }finally {
-                statement2.close();
-            }
-
-            db.setTransactionSuccessful();
-
-            SQLiteStatement statement3 = db.compileStatement("INSERT INTO have_material(material_id) VALUES(?)");
-            try {
-
-                statement3.bindLong(1, getMaterialId(material_name));
-                statement3.executeInsert();
-
-            }catch (Exception e){
-
-            }finally {
-                statement3.close();
-            }
-            db.setTransactionSuccessful();
-            result = true;
-        } finally {
-            db.endTransaction();
-            db.close();
-        }
-
-        return result;
-    }
-
     public boolean setMaterial(Material material){
 
         boolean result = false;
@@ -145,14 +84,15 @@ public class CocatailDB {
                     = db.compileStatement("INSERT INTO material(material_name, sweetness, clear, bitter, sour, sibumi) VALUES (?,?,?,?,?,?)");
             try {
 
-                    statement.bindString(1, material.getMaterialName());
-                    statement.bindLong(2, material.getSweetness());
-                    statement.bindLong(3, material.getClear());
-                    statement.bindLong(4, material.getBitterness());
-                    statement.bindLong(5, material.getSourness());
-                    statement.bindLong(6, material.getShibumi());
-                    statement.executeInsert();
+                statement.bindString(1, material.getMaterialName());
+                statement.bindLong(2, material.getSweetness());
+                statement.bindLong(3, material.getClear());
+                statement.bindLong(4, material.getBitterness());
+                statement.bindLong(5, material.getSourness());
+                statement.bindLong(6, material.getShibumi());
+                statement.executeInsert();
 
+            }catch (Exception e){
 
             } finally {
                 statement.close();
@@ -352,11 +292,6 @@ public class CocatailDB {
             cursor.close();
         }finally{
 
-        }
-
-        if(id == -1){
-            setMaterial(material);
-            return getMaterialId(material);
         }
         return id;
     }
