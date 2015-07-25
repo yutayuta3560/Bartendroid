@@ -1,7 +1,10 @@
 package jp.ac.ecc.bartendroid;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 // カクテルを自動生成するクラス
 public class CocktailCounter {
@@ -41,7 +44,10 @@ public class CocktailCounter {
         // ベースになるカクテルの原材料を取得する
         // 原材料はtasteLavelに応じて選択する
         List<Material> baseMaterialList = getMaterialBaseForTasteLevel();
-
+        int baseCount = baseMaterialList.size();
+        int basechoice = new Random().nextInt(baseCount);
+        Material baseCommitedMaterial = baseMaterialList.get(basechoice);
+        Log.d("baseMaterial:", baseCommitedMaterial.m_material_name);
 
         return null;
     }

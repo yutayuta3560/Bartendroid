@@ -2,7 +2,7 @@ package jp.ac.ecc.bartendroid;
 
 public class Material {
 
-    private String m_material_name;
+    public String m_material_name;
 
     public int m_sweetness;
     public int m_clear;
