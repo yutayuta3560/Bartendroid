@@ -38,12 +38,12 @@ public class MainActivity extends ActionBarActivity {
 
     public void setExampleData(){
 
-        Material material1 = new Material("ジン", 3, 3, 3, 3, 3);
-        Material materia2 = new Material("トニックウォーター", 1,4,5,4,3);
+        Material material1 = new Material("test", 3, 3, 3, 3, 3);
+        Material materia2 = new Material("test", 1,4,5,4,3);
         cocatailDB.setMaterial(material1);
         cocatailDB.setMaterial(materia2);
-        cocatailDB.setMaterial("オレンジジュース");
-        cocatailDB.setMaterial("カシスリキュール");
+        cocatailDB.setMaterial("test");
+        cocatailDB.setMaterial("test");
     }
 
 

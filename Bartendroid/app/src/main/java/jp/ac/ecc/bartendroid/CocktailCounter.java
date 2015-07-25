@@ -35,11 +35,12 @@ public class CocktailCounter {
     // この素材にはアルコールが含まれているかのフラグが必要
 
     // 必要な材料を指定する
-    public ArrayList<MaterialBring> createNewCocktail() {
+    public ArrayList<MaterialBring> createNewCocktail(boolean isUseAlcohol) {
 
-        //
+        // ベースになるカクテルの原材料を取得する
 
         return null;
     }
+
 
 }
