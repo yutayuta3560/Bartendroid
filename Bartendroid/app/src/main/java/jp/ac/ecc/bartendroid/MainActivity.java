@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 
@@ -17,7 +18,7 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
         cocatailDB = new CocatailDB(getApplicationContext());
 
-        //setExampleData();
+        setExampleData();
         /*ListView listview1 = (ListView)findViewById(R.id.listview1);
 
         ArrayList<Cocktail> cocktailArrayList = cocatailDB.getMakableCaktail(cocatailDB.getHaveMaterial());
@@ -38,10 +39,19 @@ public class MainActivity extends ActionBarActivity {
 
     public void setExampleData(){
 
-        Material material1 = new Material("ジン", 3, 3, 3, 3, 3);
-        Material materia2 = new Material("トニックウォーター", 1,4,5,4,3);
+        Material material1 = new Material("JIN", 3, 3, 3, 3, 3);
+        Material materia2 = new Material("Tonic", 1,4,5,4,3);
+        Material material3 = new Material("Orange", 5,2,3,5,3);
         cocatailDB.setMaterial(material1);
         cocatailDB.setMaterial(materia2);
+        cocatailDB.setMaterial(material3);
+        ArrayList<String> materials = new ArrayList<>();
+        materials.add(material1.getMaterialName());
+        materials.add(materia2.getMaterialName());
+        /*cocatailDB.setCaktail("JIN Tonic", materials, null);
+        materials.add((material3.getMaterialName()));
+        cocatailDB.setCaktail("TEST cocktail", materials, null);*/
+
 
     }
 

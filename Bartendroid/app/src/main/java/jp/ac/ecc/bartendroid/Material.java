@@ -3,14 +3,15 @@ package jp.ac.ecc.bartendroid;
 public class Material {
 
     private String m_material_name;
-    
-    private int m_sweetness;
-    private int m_clear;
-    private int m_bitterness;
-    private int m_sourness;
-    private int m_shibumi;
 
-    public Material (String name, int sweetness, int clear, int bitter, int sour, int shibumi) {
+    public int m_sweetness;
+    public int m_clear;
+    public int m_bitterness;
+    public int m_sourness;
+    public int m_shibumi;
+    public boolean m_isAlcohol;
+
+    public Material(String name, int sweetness, int clear, int bitter, int sour, int shibumi) {
         this.m_material_name = name;
         this.m_sweetness = sweetness;
         this.m_clear = clear;
@@ -18,7 +19,7 @@ public class Material {
         this.m_sourness = sour;
         this.m_shibumi = shibumi;
     }
-    
+
     public String getMaterialName() {
         return m_material_name;
     }
@@ -65,5 +66,21 @@ public class Material {
 
     public void setShibumi(int shibumi) {
         this.m_shibumi = shibumi;
-    }    
+    }
+
+    public void setAlcohol(boolean alcohol) {
+        m_isAlcohol = alcohol;
+    }
+
+    public void setAlcohol(int i) {
+        m_isAlcohol = (i == 1);
+    }
+
+    public boolean getAlcohol_bool() {
+        return m_isAlcohol;
+    }
+
+    public int getAlcohol_int() {
+        return m_isAlcohol ? 1 : 0;
+    }
 }
