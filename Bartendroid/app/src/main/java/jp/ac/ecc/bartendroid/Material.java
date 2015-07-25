@@ -11,6 +11,13 @@ public class Material {
     public int m_shibumi;
     public boolean m_isAlcohol;
 
+
+
+    public Material(String name, int sweetness, int clear, int bitter, int sour, int shibumi) {
+        // non-setting default non-alcohol.
+        this(name, sweetness, clear, bitter, sour, shibumi, 0);
+    }
+
     public Material(String name, int sweetness, int clear, int bitter, int sour, int shibumi, boolean isAlcohol) {
         this.m_material_name = name;
         this.m_sweetness = sweetness;
