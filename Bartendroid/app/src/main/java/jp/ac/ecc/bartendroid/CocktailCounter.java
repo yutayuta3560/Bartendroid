@@ -40,13 +40,13 @@ public class CocktailCounter {
 
         // ベースになるカクテルの原材料を取得する
         // 原材料はtasteLavelに応じて選択する
-        List<Material> basematerialList = getMaterialBaseForTasteLevel();
-        
+        List<Material> baseMaterialList = getMaterialBaseForTasteLevel();
+
 
         return null;
     }
 
-    private ArrayList<Material> getMaterialList() {
+    private List<Material> getMaterialList() {
         ArrayList<Material> list = new ArrayList<Material>();
         for (MaterialBring material : materialBringList) {
             list.add(material.material);
