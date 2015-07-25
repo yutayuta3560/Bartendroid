@@ -37,7 +37,8 @@ public class CocatailDBOpenHelper extends SQLiteOpenHelper{
                             + "clear integer default 0,"
                             + "bitter integer default 0,"
                             + "sour integer default 0,"
-                            + "sibumi integer default 0)";
+                            + "sibumi integer default 0"
+                            + "alcohole integer default 0)";
 
         String ban_table = "CREATE TABLE ban_material("
                             + "material_id integer primary key,"

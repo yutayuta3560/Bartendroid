@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 import android.media.session.PlaybackState;
+import android.util.Log;
 
 import java.util.ArrayList;
 
@@ -74,6 +75,7 @@ public class CocatailDB {
 
         return material_list;
     }
+
     public boolean setMaterial(String material_name){
 
         boolean result = false;
@@ -87,6 +89,9 @@ public class CocatailDB {
                 statement.bindString(1, material_name);
                 statement.executeInsert();
 
+            }catch (Exception e){
+
+                Log.v("material", e.getMessage());
 
             } finally {
                 statement.close();
@@ -96,10 +101,13 @@ public class CocatailDB {
             // BAN
             SQLiteStatement statement2 = db.compileStatement("INSERT INTO ban_material(material_id) VALUES(?)");
 
-            try{
+            try {
 
                 statement2.bindLong(1, getMaterialId(material_name));
                 statement2.executeInsert();
+            }catch (Exception e){
+
+                Log.v("ban", e.getMessage());
             }finally {
                 statement2.close();
             }
@@ -107,10 +115,13 @@ public class CocatailDB {
             db.setTransactionSuccessful();
 
             SQLiteStatement statement3 = db.compileStatement("INSERT INTO have_material(material_id) VALUES(?)");
-            try{
+            try {
 
                 statement3.bindLong(1, getMaterialId(material_name));
                 statement3.executeInsert();
+
+            }catch (Exception e){
+
             }finally {
                 statement3.close();
             }
@@ -234,25 +245,29 @@ public class CocatailDB {
 
     public ArrayList<Cocktail> getMakableCaktail(ArrayList<Material> materials) {
 
-        int count = materials.size();
-        int id = 0;
-        StringBuilder sql = new StringBuilder("SELECT caktail_name FROM caktail WHERE ");
+
+        StringBuilder sql
+                = new StringBuilder("SELECT caktail_name FROM caktail WHERE ");
         ArrayList<Cocktail> caktails = new ArrayList<Cocktail>();
 
-        for (int i = 0; i < count; i++) {
-            sql.append("material" + (i + 1) + " IN(");
-            for (int j = 0; j < count; j++) {
+        for (int i = 1; i <= 10; i++) {
+            sql.append("material" + String.valueOf(i) + "_id " + " IN(SELECT material_id FROM material WHERRE ");
 
+            for(int j = 0; j < materials.size(); j++){
+                sql.append("material_name LIKE '" + materials.get(j).getMaterialName() + "'");
 
-                if ((j + 1) != count) {
-                    sql.append(",");
+                if(j != materials.size() - 1){
+                    sql.append(" OR ");
                 }
+
+            }
+            sql.append(") ");
+
+            if(i != 10){
+
+                sql.append(" AND ");
             }
 
-            sql.append(") ");
-            if ((i + 1) != count) {
-                sql.append("AND ");
-            }
         }
 
         db = caktail.getReadableDatabase();
@@ -260,9 +275,33 @@ public class CocatailDB {
             Cursor cursor = db.rawQuery(sql.toString(), null);
 
             while (cursor.moveToNext()) {
-                 
+
+                int i = 0;
+                caktails.add(new Cocktail(cursor.getString(0)));
+
+                String sql2 = "SELECT material_name, sweetness, clear, bitter, sour, sibumi FROM material WHERE material_id " +
+                            "IN(SELECT material1_id, material2_id, material3_id, material4_id, material5_id, material6_id, material7_id, material8_id," +
+                            " material9_id, material10_id FROM caktail WHERE caktail_name LIKE '%" + cursor.getString(0) + "%'";
+
+                try {
+                    Cursor cursor2 = db.rawQuery(sql2, null);
+
+                    while (cursor2.moveToNext()){
+                        caktails.get(i).addMaterial(new Material(cursor2.getString(0), cursor2.getInt(1), cursor2.getInt(2),
+                                cursor2.getInt(3), cursor2.getInt(4), cursor2.getInt(5)));
+                    }
+                    cursor2.close();
+                }catch (Exception e){
+
+                }
+                i++;
             }
             cursor.close();
+
+
+
+        }catch (Exception e){
+
         } finally {
             db.close();
         }
