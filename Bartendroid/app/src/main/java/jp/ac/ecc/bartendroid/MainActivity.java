@@ -42,8 +42,7 @@ public class MainActivity extends ActionBarActivity {
         Material materia2 = new Material("トニックウォーター", 1,4,5,4,3);
         cocatailDB.setMaterial(material1);
         cocatailDB.setMaterial(materia2);
-        cocatailDB.setMaterial("オレンジジュース");
-        cocatailDB.setMaterial("カシスリキュール");
+
     }
 
 
