@@ -1,4 +1,4 @@
-package cocktailmaker;
+package jp.ac.ecc.bartendroid;
 
 public class Material {
 

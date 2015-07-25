@@ -1,4 +1,4 @@
-package cocktailmaker;
+package jp.ac.ecc.bartendroid;
 
 import java.util.ArrayList;
 
