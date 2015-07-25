@@ -11,13 +11,24 @@ public class Material {
     public int m_shibumi;
     public boolean m_isAlcohol;
 
-    public Material(String name, int sweetness, int clear, int bitter, int sour, int shibumi) {
+    public Material(String name, int sweetness, int clear, int bitter, int sour, int shibumi, boolean isAlcohol) {
         this.m_material_name = name;
         this.m_sweetness = sweetness;
         this.m_clear = clear;
         this.m_bitterness = bitter;
         this.m_sourness = sour;
         this.m_shibumi = shibumi;
+        setAlcohol(isAlcohol);
+    }
+
+    public Material(String name, int sweetness, int clear, int bitter, int sour, int shibumi, int isAlcohol) {
+        this.m_material_name = name;
+        this.m_sweetness = sweetness;
+        this.m_clear = clear;
+        this.m_bitterness = bitter;
+        this.m_sourness = sour;
+        this.m_shibumi = shibumi;
+        setAlcohol(isAlcohol);
     }
 
     public String getMaterialName() {
