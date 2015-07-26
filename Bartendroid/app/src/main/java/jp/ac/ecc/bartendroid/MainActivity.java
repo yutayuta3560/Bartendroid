@@ -2,10 +2,13 @@ package jp.ac.ecc.bartendroid;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.lang.reflect.Array;
+import java.security.spec.ECField;
 import java.util.ArrayList;
 
 
@@ -19,11 +22,13 @@ public class MainActivity extends ActionBarActivity {
         cocatailDB = new CocatailDB(getApplicationContext());
 
         setExampleData();
-        /*ListView listview1 = (ListView)findViewById(R.id.listview1);
+        ListView listview1 = (ListView)findViewById(R.id.listview1);
 
         ArrayList<Cocktail> cocktailArrayList = cocatailDB.getMakableCaktail(cocatailDB.getHaveMaterial());
 
-        listview1.setAdapter(setArrayAdapter(cocktailArrayList));*/
+        Log.d("TEST", cocktailArrayList.get(0).getCocktailName());
+
+        listview1.setAdapter(setArrayAdapter(cocktailArrayList));
 
     }
 
@@ -45,14 +50,35 @@ public class MainActivity extends ActionBarActivity {
         cocatailDB.setMaterial(material1);
         cocatailDB.setMaterial(materia2);
         cocatailDB.setMaterial(material3);
-        ArrayList<String> materials = new ArrayList<>();
-        materials.add(material1.getMaterialName());
-        materials.add(materia2.getMaterialName());
-        /*cocatailDB.setCaktail("JIN Tonic", materials, null);
-        materials.add((material3.getMaterialName()));
-        cocatailDB.setCaktail("TEST cocktail", materials, null);*/
+        ArrayList<String> material_names = new ArrayList<>();
+        ArrayList<Material> materials = new ArrayList<>();
+        materials.add(materia2);
+        materials.add(material1);
+        materials.add(material3);
+        material_names.add(material1.getMaterialName());
+        material_names.add(materia2.getMaterialName());
+        byte[] image = new byte[0];
+        //cocatailDB.setCaktail("JIN TONIC", material_names, image);
+        material_names.add(material3.getMaterialName());
+        cocatailDB.setCaktail("JIN TONIC ORANGE", material_names, image);
+        cocatailDB.setHaveMaterial(material1, 100);
+        cocatailDB.setHaveMaterial(materia2, 100);
+        cocatailDB.setHaveMaterial(material3,100);
+        ArrayList<Cocktail> cocktailArrayList = cocatailDB.getMakableCaktail(materials);
+        Log.d("CaktailArray", cocktailArrayList.get(0).getCocktailName());
+        ArrayList<MaterialBring> bring_list = new ArrayList<>();
+        bring_list.add(new MaterialBring(material1, 100, "ml"));
+        bring_list.add(new MaterialBring(material3, 100, "ml"));
+        bring_list.add(new MaterialBring(materia2, 100, "ml"));
+        try {
+            CocktailCounter counter = new CocktailCounter(CocktailTaste.SWEET , 3);
+            counter.addMaterial(bring_list);
+            counter.createNewCocktail(true);
 
+        }catch (Exception e){
 
+            Log.d("Error", e.getMessage());
+        }
     }
 
 

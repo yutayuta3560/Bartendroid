@@ -21,23 +21,31 @@ public class CocatailDB {
         db.close();
     }
 
-    public boolean setHaveMaterial(String material, int amounnt){
+    public boolean setHaveMaterial(Material material, int amounnt){
 
         db = caktail.getWritableDatabase();
         boolean result = false;
 
         db.beginTransaction();
         try{
-            String sql = "UPDATE have_material SET amount = ? WHERE material_id = " + getMaterialId(material);
+            String sql = "UPDATE have_material SET amount = ? WHERE material_id = (" + getMaterialIdSql(material.getMaterialName()) + ")";
             SQLiteStatement statement = db.compileStatement(sql);
-            try{
-                statement.bindLong(1,amounnt);
+            try {
+                statement.bindLong(1, amounnt);
                 statement.executeUpdateDelete();
+
+            }catch (Exception e){
+
+                Log.d("HaveSet", e.getMessage());
+
             }finally {
                 statement.close();
             }
             db.setTransactionSuccessful();
             result = true;
+
+        }catch (Exception e){
+            Log.d("HaveSet", e.getMessage());
         }finally {
 
             db.endTransaction();
@@ -51,8 +59,8 @@ public class CocatailDB {
 
         db = caktail.getReadableDatabase();
         ArrayList<Material> material_list = new ArrayList<Material>();
-        String sql = "SELECT m.material_name, m.sweetnes, m.clear, m.bitter, m.sour, m.sibumi From have_material h JOIN material m" +
-                        "ON h.material_id = m.l_id WHERE h.amount <> 0";
+        String sql = "SELECT m.material_name, m.sweetness, m.clear, m.bitter, m.sour, m.sibumi From have_material h JOIN material m" +
+                        " ON h.material_id = m._id WHERE h.amount <> 0";
 
         try {
             Cursor cursor = db.rawQuery(sql.toString(), null);
@@ -66,10 +74,12 @@ public class CocatailDB {
             cursor.close();
         }catch (Exception e){
 
+            Log.d("Have", e.getMessage());
         } finally {
 
             db.close();
         }
+
 
         return material_list;
     }
@@ -81,7 +91,7 @@ public class CocatailDB {
         db.beginTransaction();
         try {
             SQLiteStatement statement
-                    = db.compileStatement("INSERT INTO material(material_name, sweetness, clear, bitter, sour, sibumi) VALUES (?,?,?,?,?,?)");
+                    = db.compileStatement("INSERT INTO material (material_name, sweetness, clear, bitter, sour, sibumi) VALUES (?,?,?,?,?,?)");
             try {
 
                 statement.bindString(1, material.getMaterialName());
@@ -92,40 +102,47 @@ public class CocatailDB {
                 statement.bindLong(6, material.getShibumi());
                 statement.executeInsert();
 
-            }catch (Exception e){
+            } catch (Exception e) {
 
+                Log.v("material", e.getMessage());
             } finally {
                 statement.close();
             }
-            db.setTransactionSuccessful();
 
             // BAN
-            SQLiteStatement statement2 = db.compileStatement("INSERT INTO ban_material(material_id) VALUES(?)");
+            SQLiteStatement statement2 = db.compileStatement("INSERT INTO ban_material(material_id) "
+                                        + getMaterialIdSql(material.getMaterialName()));
 
-            try{
+            try {
 
-                statement2.bindLong(1, getMaterialId(material.getMaterialName()));
                 statement2.executeInsert();
 
-            }finally {
+            } catch (Exception e) {
+
+
+            } finally {
                 statement2.close();
             }
 
-            db.setTransactionSuccessful();
-            SQLiteStatement statement3 = db.compileStatement("INSERT INTO have_material(material_id) VALUES(?)");
+           SQLiteStatement statement3 = db.compileStatement("INSERT INTO have_material(material_id) "
+                                                            + getMaterialIdSql(material.getMaterialName()));
             try{
-
-                statement3.bindLong(1, getMaterialId(material.getMaterialName()));
                 statement3.executeInsert();
             }finally {
                 statement3.close();
             }
             db.setTransactionSuccessful();
             result = true;
+
+        }catch (Exception e){
+
+            Log.d("Statement",e.getMessage());
         } finally {
+
             db.endTransaction();
             db.close();
         }
+
 
         return result;
     }
@@ -140,40 +157,47 @@ public class CocatailDB {
             return result;
 
         }
-        StringBuilder rows = new StringBuilder("material1,material2.");
+        StringBuilder rows = new StringBuilder("material1_id,material2_id,");
         StringBuilder bindrows = new StringBuilder("VALUES(?,?,?,");
-        for(int i = 3; i < count; i++){
+        for(int i = 2; i < count; i++){
 
-            rows.append("material" + i + ",");
+            rows.append("material" + (i + 1) + "_id,");
             bindrows.append("?,");
         }
 
         bindrows.append("?)");
         db.beginTransaction();
-        try{
+        try {
             String sql = "INSERT INTO caktail(caktail_name, " + rows.toString() + "caktail_image) " + bindrows.toString();
             final SQLiteStatement statement
                     = db.compileStatement(sql);
 
             try {
                 statement.bindString(1, caktail_name);
-                int i = 0;
-                for(i = 0; i < material.size(); i++){
+                int i;
+                for (i = 0; i < material.size(); i++) {
 
                     statement.bindLong(i + 2, getMaterialId(material.get(i)));
 
                 }
-                if (!image.equals(null)) {
+                if (image.length != 0) {
                     statement.bindBlob(i + 2, image);
-                }else {
+                } else {
                     statement.bindNull(i + 2);
                 }
                 statement.executeInsert();
-            }finally {
+            }catch (Exception e){
+
+                Log.d("caktail_statement", e.getMessage());
+            } finally {
                 statement.close();
             }
             db.setTransactionSuccessful();
             result = true;
+
+        }catch (Exception e){
+
+            Log.d("Caktail_Table", e.getMessage());
         }finally {
             db.endTransaction();
             db.close();
@@ -184,47 +208,56 @@ public class CocatailDB {
     }
 
     public ArrayList<Cocktail> getMakableCaktail(ArrayList<Material> materials) {
-
-
+        db = caktail.getReadableDatabase();
         StringBuilder sql
                 = new StringBuilder("SELECT caktail_name FROM caktail WHERE ");
         ArrayList<Cocktail> caktails = new ArrayList<Cocktail>();
 
         for (int i = 1; i <= 10; i++) {
-            sql.append("material" + String.valueOf(i) + "_id " + " IN(SELECT material_id FROM material WHERRE ");
 
-            for(int j = 0; j < materials.size(); j++){
-                sql.append("material_name LIKE '" + materials.get(j).getMaterialName() + "'");
+            sql.append("material" + String.valueOf(i) + "_id IN(0,");
+
+            for(int j = 0; j < materials.size(); j++) {
+
+                sql.append(getMaterialId(materials.get(j).getMaterialName()));
 
                 if(j != materials.size() - 1){
-                    sql.append(" OR ");
+                    sql.append(",");
                 }
 
             }
             sql.append(") ");
-
             if(i != 10){
-
                 sql.append(" AND ");
             }
-
         }
 
-        db = caktail.getReadableDatabase();
+
+
         try {
             Cursor cursor = db.rawQuery(sql.toString(), null);
 
             while (cursor.moveToNext()) {
 
+
                 int i = 0;
                 caktails.add(new Cocktail(cursor.getString(0)));
 
-                String sql2 = "SELECT material_name, sweetness, clear, bitter, sour, sibumi FROM material WHERE material_id " +
-                            "IN(SELECT material1_id, material2_id, material3_id, material4_id, material5_id, material6_id, material7_id, material8_id," +
-                            " material9_id, material10_id FROM caktail WHERE caktail_name LIKE '%" + cursor.getString(0) + "%'";
+                StringBuilder sql2 = new StringBuilder();
+                sql2.append( "SELECT material_name, sweetness, clear, bitter, sour, sibumi FROM material WHERE _id IN(");
+                for(int j = 0; j < materials.size(); j++) {
+
+                    sql2.append(getMaterialId(materials.get(j).getMaterialName()));
+
+                    if(j != materials.size() - 1){
+                        sql2.append(",");
+                    }
+
+                }
+                sql2.append(")");
 
                 try {
-                    Cursor cursor2 = db.rawQuery(sql2, null);
+                    Cursor cursor2 = db.rawQuery(sql2.toString(), null);
 
                     while (cursor2.moveToNext()){
                         caktails.get(i).addMaterial(new Material(cursor2.getString(0), cursor2.getInt(1), cursor2.getInt(2),
@@ -233,21 +266,17 @@ public class CocatailDB {
                     cursor2.close();
                 }catch (Exception e){
 
+                    Log.d("Makable",e.getMessage());
                 }
                 i++;
             }
             cursor.close();
-
-
-
         }catch (Exception e){
-
+            Log.d("Makeable", e.getMessage());
         } finally {
             db.close();
         }
-
         return caktails;
-
     }
     private boolean setBanMaterial(String material1, String material2){
 
@@ -279,17 +308,25 @@ public class CocatailDB {
 
         return result;
     }
+
+    private String getMaterialIdSql(String material){
+
+        return "SELECT _id FROM material WHERE material_name = '" + material + "'";
+    }
     private int getMaterialId(String material){
 
-        String sql = "SELECT _id FROM material WHERE = '" + material + "';";
+        String sql = "SELECT _id FROM material WHERE material_name = '" + material + "';";
         int id = -1;
-        try{
+        try {
             Cursor cursor = db.rawQuery(sql, null);
 
-            if (cursor.moveToFirst()){
+            if (cursor.moveToFirst()) {
                 id = cursor.getInt(0);
             }
             cursor.close();
+        }catch (Exception e){
+
+            Log.d("GetID", e.getMessage());
         }finally{
 
         }
