@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 import android.media.session.PlaybackState;
 import android.util.Log;
+import android.widget.Switch;
 
 import java.util.ArrayList;
 
@@ -85,7 +86,6 @@ public class CocatailDB {
     }
 
     public boolean setMaterial(Material material){
-
         boolean result = false;
         db = caktail.getWritableDatabase();
         db.beginTransaction();
@@ -118,32 +118,27 @@ public class CocatailDB {
                 statement2.executeInsert();
 
             } catch (Exception e) {
-
-
+                Log.d("Statement",e.getMessage());
             } finally {
                 statement2.close();
             }
-
            SQLiteStatement statement3 = db.compileStatement("INSERT INTO have_material(material_id) "
                                                             + getMaterialIdSql(material.getMaterialName()));
-            try{
+            try {
                 statement3.executeInsert();
+            }catch (Exception e){
+                Log.d("Statement",e.getMessage());
             }finally {
                 statement3.close();
             }
             db.setTransactionSuccessful();
             result = true;
-
         }catch (Exception e){
-
             Log.d("Statement",e.getMessage());
         } finally {
-
             db.endTransaction();
             db.close();
         }
-
-
         return result;
     }
 
@@ -171,14 +166,11 @@ public class CocatailDB {
             String sql = "INSERT INTO caktail(caktail_name, " + rows.toString() + "caktail_image) " + bindrows.toString();
             final SQLiteStatement statement
                     = db.compileStatement(sql);
-
             try {
                 statement.bindString(1, caktail_name);
                 int i;
                 for (i = 0; i < material.size(); i++) {
-
                     statement.bindLong(i + 2, getMaterialId(material.get(i)));
-
                 }
                 if (image.length != 0) {
                     statement.bindBlob(i + 2, image);
@@ -187,26 +179,85 @@ public class CocatailDB {
                 }
                 statement.executeInsert();
             }catch (Exception e){
-
                 Log.d("caktail_statement", e.getMessage());
             } finally {
                 statement.close();
             }
             db.setTransactionSuccessful();
             result = true;
-
         }catch (Exception e){
-
             Log.d("Caktail_Table", e.getMessage());
         }finally {
             db.endTransaction();
             db.close();
         }
-
         return result;
 
     }
 
+    public int getTasete(Cocktail cocktail, CocktailTaste taste){
+
+        int tastelevel = 0;
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT ");
+        switch(taste){
+            case SWEET: sql.append("sweetness");
+                        break;
+            case SHIBUMI: sql.append("sibumi");
+                        break;
+            case SOUR: sql.append("sour");
+                        break;
+            case BITTER: sql.append("bitter");
+                        break;
+            case CLEAR: sql.append("clear");
+                        break;
+
+        }
+        db = caktail.getReadableDatabase();
+
+        sql.append(" FROM material WHERE _id IN(SELECT _id FROM caktail WHERE caktail_name = '" + cocktail.getCocktailName() + "')");
+
+        try {
+            Cursor cursor = db.rawQuery(sql.toString(), null);
+
+            while (cursor.moveToNext()){
+                tastelevel += cursor.getInt(0);
+            }
+            cursor.close();
+        }catch (Exception e){
+            Log.d("Taste", e.getMessage());
+        } finally {
+            db.close();
+        }
+        return tastelevel;
+    }
+
+    public ArrayList<Cocktail> getPlusMakeableCaktail(ArrayList<Material> materials, int x){
+
+        MaterialManager manager = new MaterialManager();
+        ArrayList<Cocktail> cocktails = new ArrayList<>();
+        db = caktail.getReadableDatabase();
+        StringBuilder sql
+                = new StringBuilder("SELECT c.caktail_name, m.material_name, FROM caktail c JOIN material m WHERE ");
+        for (int i = 1; i <= 10; i++) {
+            sql.append("material" + String.valueOf(i) + "_id IN(");
+
+            for(int j = 0; j < materials.size(); j++) {
+
+                sql.append(getMaterialId(materials.get(j).getMaterialName()));
+
+                if(j != materials.size() - 1){
+                    sql.append(",");
+                }
+            }
+            sql.append(") ");
+            if(i != 10){
+                sql.append(" AND ");
+            }
+        }
+
+        return cocktails;
+    }
     public ArrayList<Cocktail> getMakableCaktail(ArrayList<Material> materials) {
         db = caktail.getReadableDatabase();
         StringBuilder sql
@@ -231,20 +282,15 @@ public class CocatailDB {
                 sql.append(" AND ");
             }
         }
-
-
-
         try {
             Cursor cursor = db.rawQuery(sql.toString(), null);
 
             while (cursor.moveToNext()) {
-
-
                 int i = 0;
                 caktails.add(new Cocktail(cursor.getString(0)));
-
                 StringBuilder sql2 = new StringBuilder();
                 sql2.append( "SELECT material_name, sweetness, clear, bitter, sour, sibumi FROM material WHERE _id IN(");
+
                 for(int j = 0; j < materials.size(); j++) {
 
                     sql2.append(getMaterialId(materials.get(j).getMaterialName()));
@@ -289,8 +335,8 @@ public class CocatailDB {
             while(ids[i] != -1){
                 i++;
             }
-
-            String sql = "UPDATE ban_material SET material" + (i + 1) + " = ? WHERE = " + getMaterialId(material1);
+            String sql = "UPDATE ban_material SET material" + (i + 1) + " = " +
+                    "("+ getMaterialIdSql(material2) + ") WHERE = (" + getMaterialIdSql(material1) +")";
             final SQLiteStatement statement = db.compileStatement(sql);
             try {
                 statement.bindLong(1, getMaterialId(material2));
@@ -301,20 +347,16 @@ public class CocatailDB {
             db.setTransactionSuccessful();
             result = true;
         }finally {
-
             db.endTransaction();
             db.close();
         }
-
         return result;
     }
 
     private String getMaterialIdSql(String material){
-
         return "SELECT _id FROM material WHERE material_name = '" + material + "'";
     }
     private int getMaterialId(String material){
-
         String sql = "SELECT _id FROM material WHERE material_name = '" + material + "';";
         int id = -1;
         try {
