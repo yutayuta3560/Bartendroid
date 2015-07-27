@@ -30,6 +30,12 @@ public class CocatailDBOpenHelper extends SQLiteOpenHelper{
                             + "material10_id integer default 0,"
                             + "caktail_image BROB default 0);";
 
+        String makeamount = "CREATE TABLE material_amount(" +
+                            "caktail_id integer not null," +
+                            "material_id integer not null," +
+                            "amount integer default 0," +
+                            "primary key(caktail_id, material_id))";
+
         String material_table = "CREATE TABLE material ("
                             + "_id integer primary key autoincrement not null,"
                             + "material_name text not null,"
@@ -52,12 +58,12 @@ public class CocatailDBOpenHelper extends SQLiteOpenHelper{
                             + "material_id integer primary key,"
                             + "amount integer default 0);";
         db.execSQL(caktail_table);
-
+        db.execSQL(makeamount);
         db.execSQL(material_table);
         db.execSQL(ban_table);
         db.execSQL(have_table);
 
-    }
+}
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int i, int i1) {

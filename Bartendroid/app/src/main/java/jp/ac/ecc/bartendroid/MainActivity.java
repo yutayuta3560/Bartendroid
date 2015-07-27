@@ -58,21 +58,24 @@ public class MainActivity extends ActionBarActivity {
         material_names.add(material1.getMaterialName());
         material_names.add(materia2.getMaterialName());
         byte[] image = new byte[0];
+
         cocatailDB.setCaktail("JIN TONIC", material_names, image);
         material_names.add(material3.getMaterialName());
         cocatailDB.setCaktail("JIN TONIC ORANGE", material_names, image);
+        ArrayList<Cocktail> cocktailArrayList = cocatailDB.getCocktailList();
+        if(cocktailArrayList != null){
+            cocatailDB.setMaterialAmount(cocktailArrayList.get(0), cocktailArrayList.get(0).getMaterial().get(0), 10);
+        }
         cocatailDB.setHaveMaterial(material1, 100);
         cocatailDB.setHaveMaterial(materia2, 100);
         cocatailDB.setHaveMaterial(material3, 100);
-        ArrayList<Cocktail> cocktailArrayList = cocatailDB.getMakableCaktail(materials);
-        Log.d("CaktailArray", cocktailArrayList.get(0).getCocktailName());
+
+
         ArrayList<MaterialBring> bring_list = new ArrayList<>();
         bring_list.add(new MaterialBring(material1, 100, "ml"));
         bring_list.add(new MaterialBring(material3, 100, "ml"));
         bring_list.add(new MaterialBring(materia2, 100, "ml"));
 
-        int taste = cocatailDB.getTasete(cocktailArrayList.get(1),CocktailTaste.SWEET);
-        Log.d("GetTaste", String.valueOf(taste));
         try {
             CocktailCounter counter = new CocktailCounter(CocktailTaste.SWEET , 3);
             counter.addMaterial(bring_list);
