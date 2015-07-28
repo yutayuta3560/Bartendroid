@@ -252,6 +252,82 @@ public class CocatailDB {
         }
         return result;
     }
+
+    // カクテルの素材必要量取得
+    public int getMaterialAmount(Cocktail cocktail, Material material){
+        int amount = 0;
+
+        String sql = "SELECT amount FROM material_amount WHERE caktail_id = (SELECT _id FROM caktail " +
+                "WHERE caktail_name = '" + cocktail.getCocktailName() + "') AND material_id = (SELECT _id FROM material " +
+                "WHERE material_name = '" + material.getMaterialName() + "')";
+
+        db = caktail.getReadableDatabase();
+        try{
+            Cursor cursor = db.rawQuery(sql, null);
+            if(cursor.moveToFirst()){
+                amount = cursor.getInt(0);
+            }
+            cursor.close();
+        }catch (Exception e){
+            Log.v("getAmount", e.getMessage());
+        }finally {
+            db.close();
+        }
+
+        return amount;
+    }
+    // 指定カクテル名の素材
+    public Cocktail getCocktail(String cocktail_name){
+
+        Cocktail cocktail = new Cocktail(cocktail_name);
+        db = caktail.getReadableDatabase();
+        String sql = "SELECT material1_id, material2_id, material3_id, material4_id, material5_id," +
+                "material6_id, material7_id, material8_id, material9_id, material10_id FROM caktail WHERE caktail_name = '" + cocktail_name + "'";
+        try{
+            Cursor cursor = db.rawQuery(sql, null);
+            int i = 0;
+
+            // カクテル格納
+            while (cursor.moveToNext()){
+
+                StringBuilder materialSql = new StringBuilder();
+                materialSql.append("SELECT material_name, sweetness, clear, bitter, sour, sibumi, alcohole FROM material " +
+                        "WHERE _id IN(");
+                for(int j = 1; j < cursor.getColumnCount(); j++){
+                    materialSql.append(cursor.getInt(j));
+                    if(j != cursor.getColumnCount() - 1){
+                        materialSql.append(",");
+                    }
+                }
+                materialSql.append(")");
+                try{
+                    Cursor materialCusor = db.rawQuery(materialSql.toString(), null);
+                    // カクテルの素材
+                    while (materialCusor.moveToNext()){
+                        cocktail.addMaterial(new Material(
+                                materialCusor.getString(0),
+                                materialCusor.getInt(i),
+                                materialCusor.getInt(2),
+                                materialCusor.getInt(3),
+                                materialCusor.getInt(4),
+                                materialCusor.getInt(5),
+                                materialCusor.getInt(6)
+                        ));
+                    }
+                    materialCusor.close();
+                }catch (Exception e){
+                    Log.d("GetCocatail", e.getMessage());
+                }
+                i++;
+            }
+            cursor.close();
+        }catch (Exception e){
+            Log.d("GetCocatail", e.getMessage());
+        }finally {
+            db.close();
+        }
+        return cocktail;
+    }
     // 現在登録されているカクテル全て
     public ArrayList<Cocktail> getCocktailList(){
 
