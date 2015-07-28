@@ -10,27 +10,25 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
-import java.lang.reflect.Array;
-import java.security.spec.ECField;
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class MainActivity extends ActionBarActivity {
 
-    static protected CocatailDB cocatailDB;
+    static protected CocatailDB cocktailDB;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        cocatailDB = new CocatailDB(getApplicationContext());
+        cocktailDB = new CocatailDB(getApplicationContext());
 
         setExampleData();
         ListView listview1 = (ListView)findViewById(R.id.listview1);
 
-        ArrayList<Cocktail> cocktailArrayList = cocatailDB.getMakableCaktail(cocatailDB.getHaveMaterial());
+        ArrayList<Cocktail> cocktailArrayList = cocktailDB.getMakableCaktail(cocktailDB.getHaveMaterial());
 
         Log.d("TEST", cocktailArrayList.get(0).getCocktailName());
 
@@ -57,44 +55,60 @@ public class MainActivity extends ActionBarActivity {
         return new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, cocktail_name );
     }
 
+    public void initialData() {
+        List<Material> list = new ArrayList<Material>();
+        list.add(new Material("JIN", 3, 3, 3, 3, 3, true, "ml"));
+        list.add(new Material("Tonic", 1, 4, 5, 4, 3, true, "ml"));
+        list.add(new Material("Orange", 5, 2, 3, 5, 3, false, "ml"));
+
+    }
+
+    public void createDatabase(List<Material> list) {
+        ArrayList<String> material_names = new ArrayList<String>();
+        for (Material material : list) {
+            cocktailDB.setMaterial(material, material.unit);
+
+        }
+    }
+
     public void setExampleData(){
 
         Material material1 = new Material("JIN", 3, 3, 3, 3, 3);
-        Material materia2 = new Material("Tonic", 1,4,5,4,3);
+        Material material2 = new Material("Tonic", 1,4,5,4,3);
         Material material3 = new Material("Orange", 5,2,3,5,3);
-        cocatailDB.setMaterial(material1, "ml");
-        cocatailDB.setMaterial(materia2, "ml");
-        cocatailDB.setMaterial(material3, "ml");
+        cocktailDB.setMaterial(material1, "ml");
+        cocktailDB.setMaterial(material2, "ml");
+        cocktailDB.setMaterial(material3, "ml");
         ArrayList<String> material_names = new ArrayList<>();
         ArrayList<Material> materials = new ArrayList<>();
-        materials.add(materia2);
         materials.add(material1);
+        materials.add(material2);
         materials.add(material3);
         material_names.add(material1.getMaterialName());
-        material_names.add(materia2.getMaterialName());
+        material_names.add(material2.getMaterialName());
 
         Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.no_image);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
         byte[] image = baos.toByteArray();
 
-        cocatailDB.setCaktail("JIN TONIC", material_names, image);
+        cocktailDB.setCaktail("JIN TONIC", material_names, image);
         material_names.add(material3.getMaterialName());
-        cocatailDB.setCaktail("JIN TONIC ORANGE", material_names, image);
-        ArrayList<Cocktail> cocktailArrayList = cocatailDB.getCocktailList();
+        cocktailDB.setCaktail("JIN TONIC ORANGE", material_names, image);
+        ArrayList<Cocktail> cocktailArrayList = cocktailDB.getCocktailList();
 
         if(cocktailArrayList != null){
-            cocatailDB.setMaterialAmount(cocktailArrayList.get(0), cocktailArrayList.get(0).getMaterial().get(0), 10);
+            cocktailDB.setMaterialAmount(cocktailArrayList.get(0), cocktailArrayList.get(0).getMaterial().get(0), 10);
         }
-        cocatailDB.setHaveMaterial(material1, 100);
-        cocatailDB.setHaveMaterial(materia2, 100);
-        cocatailDB.setHaveMaterial(material3, 100);
+        cocktailDB.setHaveMaterial(material1, 100);
+        cocktailDB.setHaveMaterial(material2, 100);
+        cocktailDB.setHaveMaterial(material3, 100);
 
 
         ArrayList<MaterialBring> bring_list = new ArrayList<>();
         bring_list.add(new MaterialBring(material1, 100, "ml"));
         bring_list.add(new MaterialBring(material3, 100, "ml"));
-        bring_list.add(new MaterialBring(materia2, 100, "ml"));
+        bring_list.add(new MaterialBring(material2, 100, "ml"));
 
         try {
             CocktailCounter counter = new CocktailCounter(CocktailTaste.SWEET , 3);
