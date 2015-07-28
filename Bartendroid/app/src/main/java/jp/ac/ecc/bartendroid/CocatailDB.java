@@ -1,9 +1,12 @@
 package jp.ac.ecc.bartendroid;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.session.PlaybackState;
 import android.util.Log;
 import android.widget.Switch;
@@ -86,13 +89,14 @@ public class CocatailDB {
     }
 
     // 素材新規登録
-    public boolean setMaterial(Material material){
+    public boolean setMaterial(Material material, String unit){
         boolean result = false;
         db = caktail.getWritableDatabase();
         db.beginTransaction();
         try {
             SQLiteStatement statement
-                    = db.compileStatement("INSERT INTO material (material_name, sweetness, clear, bitter, sour, sibumi,alcohole) VALUES (?,?,?,?,?,?,?)");
+                    = db.compileStatement("INSERT INTO material " +
+                    "(material_name, sweetness, clear, bitter, sour, sibumi,alcohole,unit) VALUES (?,?,?,?,?,?,?,?)");
             try {
 
                 statement.bindString(1, material.getMaterialName());
@@ -102,6 +106,7 @@ public class CocatailDB {
                 statement.bindLong(5, material.getSourness());
                 statement.bindLong(6, material.getShibumi());
                 statement.bindLong(7, material.getAlcohol_int());
+                statement.bindString(8, unit);
                 statement.executeInsert();
 
             } catch (Exception e) {
@@ -140,7 +145,46 @@ public class CocatailDB {
         }
         return result;
     }
+    // 素材更新
+    public boolean updateMaterialTaste(Material material,CocktailTaste taste){
 
+        boolean result = false;
+        StringBuilder sql = new StringBuilder("UPDATE material SET ");
+        switch (taste){
+            case SWEET: sql.append(" sweetness = " + material.getSweetness());
+                break;
+            case SOUR: sql.append(" sour = " + material.getSourness());
+                break;
+            case SHIBUMI: sql.append(" sibumi = " + material.getShibumi());
+                break;
+            case BITTER: sql.append(" bitter = " + material.getBitterness());
+                break;
+            case CLEAR: sql.append(" clear = " + material.getClear());
+                break;
+            default: return result;
+        }
+        sql.append(" WHERE material_name = '" + material.getMaterialName() + "'");
+        db = caktail.getWritableDatabase();
+        db.beginTransaction();
+        try{
+            SQLiteStatement statement = db.compileStatement(sql.toString());
+            try{
+                statement.executeUpdateDelete();
+            }catch (Exception e){
+                Log.d("UpdateTaste", e.getMessage());
+            }finally {
+                statement.close();
+            }
+            db.setTransactionSuccessful();
+            result = true;
+        }catch (Exception e){
+            Log.d("UpdateTaste", e.getMessage());
+        }finally {
+            db.endTransaction();
+            db.close();
+        }
+        return result;
+    }
     // カクテル新規登録
     public boolean setCaktail(String caktail_name, ArrayList<String> material, byte[] image){
 
@@ -172,7 +216,7 @@ public class CocatailDB {
                 for (i = 0; i < material.size(); i++) {
                     statement.bindLong(i + 2, getMaterialId(material.get(i)));
                 }
-                if (image.length != 0) {
+                if (image != null) {
                     statement.bindBlob(i + 2, image);
                 } else {
                     statement.bindNull(i + 2);
@@ -254,18 +298,21 @@ public class CocatailDB {
     }
 
     // カクテルの素材必要量取得
-    public int getMaterialAmount(Cocktail cocktail, Material material){
-        int amount = 0;
-
-        String sql = "SELECT amount FROM material_amount WHERE caktail_id = (SELECT _id FROM caktail " +
-                "WHERE caktail_name = '" + cocktail.getCocktailName() + "') AND material_id = (SELECT _id FROM material " +
+    public String getMaterialAmount(Cocktail cocktail, Material material){
+        String amount = "0";
+        String unit = "ml";
+        String sql = "SELECT a.amount, m.unit FROM material_amount a JOIN material m" +
+                " ON a.material_id = m._id" +
+                " WHERE a.caktail_id = (SELECT _id FROM caktail " +
+                "WHERE caktail_name = '" + cocktail.getCocktailName() + "') AND a.material_id = (SELECT _id FROM material " +
                 "WHERE material_name = '" + material.getMaterialName() + "')";
 
         db = caktail.getReadableDatabase();
         try{
             Cursor cursor = db.rawQuery(sql, null);
             if(cursor.moveToFirst()){
-                amount = cursor.getInt(0);
+                amount = String.valueOf(cursor.getInt(0));
+                unit = cursor.getString(1);
             }
             cursor.close();
         }catch (Exception e){
@@ -274,7 +321,7 @@ public class CocatailDB {
             db.close();
         }
 
-        return amount;
+        return amount + " " + unit;
     }
     // 指定カクテル名の素材
     public Cocktail getCocktail(String cocktail_name){
@@ -285,15 +332,13 @@ public class CocatailDB {
                 "material6_id, material7_id, material8_id, material9_id, material10_id FROM caktail WHERE caktail_name = '" + cocktail_name + "'";
         try{
             Cursor cursor = db.rawQuery(sql, null);
-            int i = 0;
-
             // カクテル格納
             while (cursor.moveToNext()){
 
                 StringBuilder materialSql = new StringBuilder();
                 materialSql.append("SELECT material_name, sweetness, clear, bitter, sour, sibumi, alcohole FROM material " +
                         "WHERE _id IN(");
-                for(int j = 1; j < cursor.getColumnCount(); j++){
+                for(int j = 0; j < cursor.getColumnCount(); j++){
                     materialSql.append(cursor.getInt(j));
                     if(j != cursor.getColumnCount() - 1){
                         materialSql.append(",");
@@ -306,7 +351,7 @@ public class CocatailDB {
                     while (materialCusor.moveToNext()){
                         cocktail.addMaterial(new Material(
                                 materialCusor.getString(0),
-                                materialCusor.getInt(i),
+                                materialCusor.getInt(1),
                                 materialCusor.getInt(2),
                                 materialCusor.getInt(3),
                                 materialCusor.getInt(4),
@@ -318,7 +363,7 @@ public class CocatailDB {
                 }catch (Exception e){
                     Log.d("GetCocatail", e.getMessage());
                 }
-                i++;
+
             }
             cursor.close();
         }catch (Exception e){
@@ -441,8 +486,63 @@ public class CocatailDB {
         }
         return caktails;
     }
+
+    // カクテルImage設定
+    public boolean setCocktailImage(Cocktail cocktail, byte[] image){
+        boolean result = false;
+        if(image == null){
+            return result;
+        }
+        String sql = "UPDATE caktail SET caktail_image = ?"
+                + " WHERE caktail_name = '" + cocktail.getCocktailName() + "'";
+        db = caktail.getWritableDatabase();
+        db.beginTransaction();
+        try{
+            SQLiteStatement statement = db.compileStatement(sql);
+            try{
+                statement.bindBlob(1, image);
+                statement.executeUpdateDelete();
+            }catch (Exception e){
+                Log.d("UpdateImage", e.getMessage());
+            }finally {
+                statement.close();
+            }
+            db.setTransactionSuccessful();
+            result = true;
+
+        }catch (Exception e){
+            Log.d("UpdateImage", e.getMessage());
+        }finally {
+            db.endTransaction();
+            db.close();
+        }
+        return result;
+    }
+    // カクテルImages取得
+    public Bitmap getCocktailImage(Cocktail cocktail){
+
+        Bitmap bitmap = null;
+        String sql = "SELECT caktail_image FROM caktail WHERE caktail_name = '" + cocktail.getCocktailName() + "'";
+        db = caktail.getReadableDatabase();
+        try{
+            Cursor cursor = db.rawQuery(sql, null);
+            if(cursor.moveToFirst()){
+                byte[] image = null;
+                image = cursor.getBlob(0);
+                if(image != null){
+                    bitmap = BitmapFactory.decodeByteArray(image, 0, image.length);
+                }
+            }
+        }catch (Exception e){
+            Log.d("GetImage", e.getMessage());
+        }finally {
+            db.close();
+        }
+
+        return bitmap;
+    }
     // NGリスト登録
-    private boolean setBanMaterial(Material material1, Material material2){
+    public boolean setBanMaterial(Material material1, Material material2){
 
         boolean result = false;
         db = caktail.getWritableDatabase();

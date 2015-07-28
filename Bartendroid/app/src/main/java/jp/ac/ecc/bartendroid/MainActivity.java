@@ -1,12 +1,18 @@
 package jp.ac.ecc.bartendroid;
 
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Array;
 import java.security.spec.ECField;
 import java.util.ArrayList;
@@ -14,7 +20,7 @@ import java.util.ArrayList;
 
 public class MainActivity extends ActionBarActivity {
 
-    private  CocatailDB cocatailDB;
+    static protected CocatailDB cocatailDB;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,7 +35,16 @@ public class MainActivity extends ActionBarActivity {
         Log.d("TEST", cocktailArrayList.get(0).getCocktailName());
 
         listview1.setAdapter(setArrayAdapter(cocktailArrayList));
-
+        listview1.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                ListView listView = (ListView) adapterView;
+                String item = (String) listView.getItemAtPosition(i);
+                Intent intent = new Intent(MainActivity.this, CocktaiShow.class);
+                intent.putExtra("cocktail", item);
+                startActivity(intent);
+            }
+        });
     }
 
     public ArrayAdapter<String> setArrayAdapter(ArrayList<Cocktail> list){
@@ -47,9 +62,9 @@ public class MainActivity extends ActionBarActivity {
         Material material1 = new Material("JIN", 3, 3, 3, 3, 3);
         Material materia2 = new Material("Tonic", 1,4,5,4,3);
         Material material3 = new Material("Orange", 5,2,3,5,3);
-        cocatailDB.setMaterial(material1);
-        cocatailDB.setMaterial(materia2);
-        cocatailDB.setMaterial(material3);
+        cocatailDB.setMaterial(material1, "ml");
+        cocatailDB.setMaterial(materia2, "ml");
+        cocatailDB.setMaterial(material3, "ml");
         ArrayList<String> material_names = new ArrayList<>();
         ArrayList<Material> materials = new ArrayList<>();
         materials.add(materia2);
@@ -57,12 +72,17 @@ public class MainActivity extends ActionBarActivity {
         materials.add(material3);
         material_names.add(material1.getMaterialName());
         material_names.add(materia2.getMaterialName());
-        byte[] image = new byte[0];
+
+        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.no_image);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+        byte[] image = baos.toByteArray();
 
         cocatailDB.setCaktail("JIN TONIC", material_names, image);
         material_names.add(material3.getMaterialName());
         cocatailDB.setCaktail("JIN TONIC ORANGE", material_names, image);
         ArrayList<Cocktail> cocktailArrayList = cocatailDB.getCocktailList();
+
         if(cocktailArrayList != null){
             cocatailDB.setMaterialAmount(cocktailArrayList.get(0), cocktailArrayList.get(0).getMaterial().get(0), 10);
         }

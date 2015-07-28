@@ -15,7 +15,7 @@ public class CocatailDBOpenHelper extends SQLiteOpenHelper{
     @Override
     public void onCreate(SQLiteDatabase db) {
 
-        String caktail_table = "CREATE TABLE caktail ("
+        String caktail_table = "CREATE TABLE IF NOT EXISTS caktail ("
                             + "_id integer primary key autoincrement not null,"
                             + "caktail_name text not null unique,"
                             + "material1_id integer not null,"
@@ -30,13 +30,13 @@ public class CocatailDBOpenHelper extends SQLiteOpenHelper{
                             + "material10_id integer default 0,"
                             + "caktail_image BROB default 0);";
 
-        String makeamount = "CREATE TABLE material_amount(" +
+        String makeamount = "CREATE TABLE IF NOT EXISTS material_amount(" +
                             "caktail_id integer not null," +
                             "material_id integer not null," +
                             "amount integer default 0," +
                             "primary key(caktail_id, material_id))";
 
-        String material_table = "CREATE TABLE material ("
+        String material_table = "CREATE TABLE IF NOT EXISTS material ("
                             + "_id integer primary key autoincrement not null,"
                             + "material_name text not null,"
                             + "sweetness integer default 0,"
@@ -44,9 +44,10 @@ public class CocatailDBOpenHelper extends SQLiteOpenHelper{
                             + "bitter integer default 0,"
                             + "sour integer default 0,"
                             + "sibumi integer default 0,"
-                            + "alcohole integer default 0);";
+                            + "alcohole integer default 0,"
+                            + "unit text default 'ml');";
 
-        String ban_table = "CREATE TABLE ban_material ("
+        String ban_table = "CREATE TABLE IF NOT EXISTS ban_material ("
                             + "material_id integer primary key,"
                             + "ban_material1_id integer default -1,"
                             + "ban_material2_id integer default -1,"
@@ -54,7 +55,7 @@ public class CocatailDBOpenHelper extends SQLiteOpenHelper{
                             + "ban_material4_id integer default -1,"
                             + "ban_material5_id integer default -1)";
 
-        String have_table = "CREATE TABLE have_material ("
+        String have_table = "CREATE TABLE IF NOT EXISTS have_material ("
                             + "material_id integer primary key,"
                             + "amount integer default 0);";
         db.execSQL(caktail_table);
