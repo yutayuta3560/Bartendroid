@@ -62,10 +62,10 @@ public class CocatailDB {
     }
 
     // 所持素材
-    public ArrayList<Material> getHaveMaterial(){
+    public ArrayList<MaterialBring> getHaveMaterial(){
         db = caktail.getReadableDatabase();
-        ArrayList<Material> material_list = new ArrayList<Material>();
-        String sql = "SELECT m.material_name, m.sweetness, m.clear, m.bitter, m.sour, m.sibumi From have_material h JOIN material m" +
+        ArrayList<MaterialBring> material_list = new ArrayList<>();
+        String sql = "SELECT m.material_name, m.sweetness, m.clear, m.bitter, m.sour, m.sibumi, m.alcohole, h.amount From have_material h JOIN material m" +
                         " ON h.material_id = m._id WHERE h.amount <> 0";
 
         try {
@@ -73,8 +73,14 @@ public class CocatailDB {
 
             while (cursor.moveToNext()) {
 
-                material_list.add(new Material(cursor.getString(0), cursor.getInt(1), cursor.getInt(2), cursor.getInt(3),
-                                                cursor.getInt(4),cursor.getInt(5)));
+                material_list.add(new MaterialBring(new Material(cursor.getString(0),
+                                                                cursor.getInt(1),
+                                                                cursor.getInt(2),
+                                                                cursor.getInt(3),
+                                                                cursor.getInt(4),
+                                                                cursor.getInt(5),
+                                                                cursor.getInt(6)),
+                                                    a);
 
             }
             cursor.close();
@@ -96,8 +102,15 @@ public class CocatailDB {
         db = caktail.getReadableDatabase();
         try{
             Cursor cursor = db.rawQuery(sql, null);
-
+            while (cursor.moveToFirst()){
+                amount = cursor.getInt(0);
+            }
+        }catch (Exception e){
+            Log.d("haveMaterial", e.getMessage());
+        }finally {
+            db.close();
         }
+        return amount;
     }
 
     // 素材新規登録

@@ -74,9 +74,7 @@ public class CocktaiShow extends ActionBarActivity {
                     cocatailDB.getUnit(material)));
         }
 
-
-
+        return false;
     }
-
 
 }
