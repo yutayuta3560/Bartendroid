@@ -11,14 +11,14 @@ public class Material {
     public int m_shibumi;
     public boolean m_isAlcohol;
 
-
+    public String unit;
 
     public Material(String name, int sweetness, int clear, int bitter, int sour, int shibumi) {
         // non-setting default non-alcohol.
-        this(name, sweetness, clear, bitter, sour, shibumi, 0);
+        this(name, sweetness, clear, bitter, sour, shibumi, 0, "ml");
     }
 
-    public Material(String name, int sweetness, int clear, int bitter, int sour, int shibumi, boolean isAlcohol) {
+    public Material(String name, int sweetness, int clear, int bitter, int sour, int shibumi, boolean isAlcohol, String unit) {
         this.m_material_name = name;
         this.m_sweetness = sweetness;
         this.m_clear = clear;
@@ -26,9 +26,10 @@ public class Material {
         this.m_sourness = sour;
         this.m_shibumi = shibumi;
         setAlcohol(isAlcohol);
+        this.unit = unit;
     }
 
-    public Material(String name, int sweetness, int clear, int bitter, int sour, int shibumi, int isAlcohol) {
+    public Material(String name, int sweetness, int clear, int bitter, int sour, int shibumi, int isAlcohol, String unit) {
         this.m_material_name = name;
         this.m_sweetness = sweetness;
         this.m_clear = clear;
@@ -36,6 +37,7 @@ public class Material {
         this.m_sourness = sour;
         this.m_shibumi = shibumi;
         setAlcohol(isAlcohol);
+        this.unit = unit;
     }
 
     public String getMaterialName() {
