@@ -88,6 +88,18 @@ public class CocatailDB {
         return material_list;
     }
 
+    // 所持素材量
+    public int haveMaterialAmount(Material material){
+        int amount = 0;
+        String sql = "SELECT amount FROM have_material WHERE material_id = "
+                + getMaterialIdSql(material.getMaterialName());
+        db = caktail.getReadableDatabase();
+        try{
+            Cursor cursor = db.rawQuery(sql, null);
+
+        }
+    }
+
     // 素材新規登録
     public boolean setMaterial(Material material, String unit){
         boolean result = false;
@@ -298,7 +310,7 @@ public class CocatailDB {
     }
 
     // カクテルの素材必要量取得
-    public String getMaterialAmount(Cocktail cocktail, Material material){
+    public String getMaterialAmountUnit(Cocktail cocktail, Material material){
         String amount = "0";
         String unit = "ml";
         String sql = "SELECT a.amount, m.unit FROM material_amount a JOIN material m" +
@@ -322,6 +334,48 @@ public class CocatailDB {
         }
 
         return amount + " " + unit;
+    }
+    // カクテルの素材必要量取得(int)
+    public int getMaterialAmount(Cocktail cocktail, Material material){
+        int amount = 0;
+        String sql = "SELECT a.amount, FROM material_amount" +
+                " WHERE caktail_id = (SELECT _id FROM caktail " +
+                "WHERE caktail_name = '" + cocktail.getCocktailName() + "') AND material_id = (SELECT _id FROM material " +
+                "WHERE material_name = '" + material.getMaterialName() + "')";
+
+        db = caktail.getReadableDatabase();
+        try{
+            Cursor cursor = db.rawQuery(sql, null);
+            if(cursor.moveToFirst()){
+                amount = cursor.getInt(0);
+            }
+            cursor.close();
+        }catch (Exception e){
+            Log.v("getAmount", e.getMessage());
+        }finally {
+            db.close();
+        }
+
+        return amount;
+    }
+    // 指定素材の単位
+    public String getUnit(Material material){
+
+        String unit = "";
+        String sql = "SELECT unit FROM material WHERE material_name = '" + material.getMaterialName() + "'";
+        db = caktail.getReadableDatabase();
+        try{
+            Cursor cursor = db.rawQuery(sql, null);
+            if(cursor.moveToFirst()){
+                unit = cursor.getString(0);
+            }
+            cursor.close();
+        }catch (Exception e){
+            Log.d("Unit", e.getMessage());
+        }finally {
+            db.close();
+        }
+        return unit;
     }
     // 指定カクテル名の素材
     public Cocktail getCocktail(String cocktail_name){

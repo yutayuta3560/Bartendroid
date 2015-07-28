@@ -6,9 +6,12 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import java.util.ArrayList;
 
 
 public class CocktaiShow extends ActionBarActivity {
@@ -24,12 +27,19 @@ public class CocktaiShow extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cocktai_show);
         setView();
-        Intent intent = getIntent();
+        final Intent intent = getIntent();
         String cocktailname = intent.getStringExtra("cocktail");
         cocktail = cocatailDB.getCocktail(cocktailname);
         Log.d("name","" + cocktail.getMaterial().size());
         imageView1.setImageBitmap(cocatailDB.getCocktailImage(cocktail));
         textView1.setText(setMessage(cocktail));
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent2 = new Intent(CocktaiShow.this, MainActivity.class);
+                startActivity(intent2);
+            }
+        });
 
 
 
@@ -49,11 +59,23 @@ public class CocktaiShow extends ActionBarActivity {
         message.append("[素材一覧]\n");
         for(Material material : cocktail.getMaterial()) {
             message.append(material.getMaterialName() + " : " +
-                    cocatailDB.getMaterialAmount(cocktail, material));
+                    cocatailDB.getMaterialAmountUnit(cocktail, material));
             message.append("\n");
         }
-
         return message.toString();
+    }
+
+    private boolean cocktailMaking(Cocktail cocktail){
+        ArrayList<Material> materials = cocatailDB.getHaveMaterial();
+        ArrayList<MaterialBring> bring = new ArrayList<>();
+        for(Material material : materials){
+            bring.add(new MaterialBring(material,
+                    cocatailDB.getMaterialAmount(cocktail, material),
+                    cocatailDB.getUnit(material)));
+        }
+
+
+
     }
 
 
