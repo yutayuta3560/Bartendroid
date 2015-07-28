@@ -1,5 +1,7 @@
 package jp.ac.ecc.bartendroid;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -8,6 +10,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -38,6 +41,28 @@ public class CocktaiShow extends ActionBarActivity {
                 startActivity(intent2);
             }
         });
+        makeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new AlertDialog.Builder(CocktaiShow.this)
+                        .setTitle("カクテル作成")
+                        .setMessage(cocktail.getCocktailName() + "を作成しますか?")
+                        .setPositiveButton("はい", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                cocktailMaking(cocktail);
+                                Toast.makeText(getApplicationContext(), "カクテルを作成しました!!", Toast.LENGTH_SHORT).show();
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                return;
+                            }
+                        })
+                        .show();
+            }
+        });
 
 
 
@@ -63,16 +88,16 @@ public class CocktaiShow extends ActionBarActivity {
         return message.toString();
     }
 
-    private boolean cocktailMaking(Cocktail cocktail){
-        ArrayList<Material> materials = cocatailDB.getHaveMaterial();
-        ArrayList<MaterialBring> bring = new ArrayList<>();
-        for(Material material : materials){
-            bring.add(new MaterialBring(material,
-                    cocatailDB.getMaterialAmount(cocktail, material),
-                    cocatailDB.getUnit(material)));
+    private void cocktailMaking(Cocktail cocktail){
+        ArrayList<MaterialBring> brig_list = new ArrayList<>();
+        for(Material material : cocktail.getMaterial()){
+            brig_list.add(new MaterialBring(material, cocatailDB.getMaterialAmount(cocktail, material), material.unit));
         }
-
-        return false;
+        for(MaterialBring bring : brig_list) {
+            if (!bring.userMaterial(cocatailDB.getMaterialAmount(cocktail, bring.material))) {
+                bring.amount = 0;
+            }
+        }
     }
 
 }

@@ -17,13 +17,9 @@ public class DBManager {
 
     }
 
-    public static void insertCocktail(CocatailDB db, Cocktail cocktail,ArrayList<Material> material, byte[] img){
+    public static void insertCocktail(CocatailDB db, Cocktail cocktail, byte[] img){
 
-        ArrayList<String> material_name = new ArrayList<>();
-        for(Material m : material){
-            material_name.add(m.getMaterialName());
-        }
-        db.setCaktail(cocktail.getCocktailName(), material_name, img);
+        db.setCaktail(cocktail, img);
 
     }
 }

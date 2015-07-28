@@ -28,7 +28,7 @@ public class MainActivity extends ActionBarActivity {
         setExampleData();
         ListView listview1 = (ListView)findViewById(R.id.listview1);
 
-        ArrayList<Cocktail> cocktailArrayList = cocktailDB.getMakableCaktail(cocktailDB.getHaveMaterial());
+        ArrayList<Cocktail> cocktailArrayList = makeHaveCocktail();
 
         Log.d("TEST", cocktailArrayList.get(0).getCocktailName());
 
@@ -55,12 +55,27 @@ public class MainActivity extends ActionBarActivity {
         return new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, cocktail_name );
     }
 
+    public ArrayList<Cocktail> makeHaveCocktail(){
+        ArrayList<Material> materials = new ArrayList<>();
+        ArrayList<Cocktail> cocktails = cocktailDB.getCocktailList();
+        for(MaterialBring brings : cocktailDB.getHaveMaterial()){
+           for(Cocktail cocktail : cocktails){
+                int amount = cocktailDB.getMaterialAmount(cocktail, brings.material);
+
+                //if(amount != 0 && brings.tryuseMaterial(amount)){
+                   materials.add(brings.material);
+               // }
+            }
+        }
+        return cocktailDB.getMakableCaktail(materials);
+    }
     public void initialData() {
         List<Material> list = new ArrayList<Material>();
+        List<Cocktail> cocktails = new ArrayList<>();
         list.add(new Material("JIN", 3, 3, 3, 3, 3, true, "ml"));
         list.add(new Material("Tonic", 1, 4, 5, 4, 3, true, "ml"));
         list.add(new Material("Orange", 5, 2, 3, 5, 3, false, "ml"));
-
+        createDatabase(list);
     }
 
     public void createDatabase(List<Material> list) {
@@ -91,10 +106,11 @@ public class MainActivity extends ActionBarActivity {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
         byte[] image = baos.toByteArray();
+        Cocktail jinTonic = new Cocktail("JIN TONIC");
+        jinTonic.addMaterial(material1);
+        jinTonic.addMaterial(material2);
+        cocktailDB.setCaktail(jinTonic, image);
 
-        cocktailDB.setCaktail("JIN TONIC", material_names, image);
-        material_names.add(material3.getMaterialName());
-        cocktailDB.setCaktail("JIN TONIC ORANGE", material_names, image);
         ArrayList<Cocktail> cocktailArrayList = cocktailDB.getCocktailList();
 
         if(cocktailArrayList != null){

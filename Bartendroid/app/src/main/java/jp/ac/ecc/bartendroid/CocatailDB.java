@@ -14,6 +14,8 @@ import android.widget.Switch;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
+import javax.crypto.Cipher;
+
 public class CocatailDB {
 
     private SQLiteDatabase db;
@@ -65,22 +67,23 @@ public class CocatailDB {
     public ArrayList<MaterialBring> getHaveMaterial(){
         db = caktail.getReadableDatabase();
         ArrayList<MaterialBring> material_list = new ArrayList<>();
-        String sql = "SELECT m.material_name, m.sweetness, m.clear, m.bitter, m.sour, m.sibumi, m.alcohole, h.amount From have_material h JOIN material m" +
+        String sql = "SELECT m.material_name, m.sweetness, m.clear, m.bitter, m.sour, m.sibumi, m.alcohole, h.amount, m.unit From have_material h JOIN material m" +
                         " ON h.material_id = m._id WHERE h.amount <> 0";
 
         try {
             Cursor cursor = db.rawQuery(sql.toString(), null);
 
             while (cursor.moveToNext()) {
-
                 material_list.add(new MaterialBring(new Material(cursor.getString(0),
                                                                 cursor.getInt(1),
                                                                 cursor.getInt(2),
                                                                 cursor.getInt(3),
                                                                 cursor.getInt(4),
                                                                 cursor.getInt(5),
-                                                                cursor.getInt(6)),
-                                                    a);
+                                                                cursor.getInt(6),
+                                                                cursor.getString(8)),
+                                                    cursor.getInt(7),
+                                                    cursor.getString(8)));
 
             }
             cursor.close();
@@ -170,6 +173,26 @@ public class CocatailDB {
         }
         return result;
     }
+
+    public ArrayList<Material> getMaterials(){
+        ArrayList<Material> materials = new ArrayList<>();
+        String sql = "SELECT * FROM material";
+        db = caktail.getReadableDatabase();
+        try{
+            Cursor cursor = db.rawQuery(sql, null);
+            while (cursor.moveToNext()){
+                materials.add(new Material(cursor.getString(1),cursor.getInt(2),cursor.getInt(3),
+                                            cursor.getInt(4),cursor.getInt(5),cursor.getInt(6),
+                                            cursor.getInt(7),cursor.getString(8)));
+            }
+            cursor.close();
+        }catch (Exception e){
+            Log.d("Allmaterial",e.getMessage());
+        }finally {
+            db.close();
+        }
+        return materials;
+    }
     // 素材更新
     public boolean updateMaterialTaste(Material material,CocktailTaste taste){
 
@@ -211,11 +234,11 @@ public class CocatailDB {
         return result;
     }
     // カクテル新規登録
-    public boolean setCaktail(String caktail_name, ArrayList<String> material, byte[] image){
+    public boolean setCaktail(Cocktail cocktail, byte[] image){
 
         db = caktail.getWritableDatabase();
         boolean result = false;
-        int count = material.size();
+        int count = cocktail.getMaterial().size();
         if(count < 2){
 
             return result;
@@ -236,10 +259,10 @@ public class CocatailDB {
             final SQLiteStatement statement
                     = db.compileStatement(sql);
             try {
-                statement.bindString(1, caktail_name);
+                statement.bindString(1, cocktail.getCocktailName());
                 int i;
-                for (i = 0; i < material.size(); i++) {
-                    statement.bindLong(i + 2, getMaterialId(material.get(i)));
+                for (i = 0; i < cocktail.getMaterial().size(); i++) {
+                    statement.bindLong(i + 2, getMaterialId(cocktail.getMaterial().get(i).getMaterialName()));
                 }
                 if (image != null) {
                     statement.bindBlob(i + 2, image);
@@ -256,7 +279,7 @@ public class CocatailDB {
             for(int i = 2; i < count; i++){
                 sql2.append(",material" + (i + 1) + "_id");
             }
-            sql2.append(" FROM caktail WHERE caktail_name = '" + caktail_name + "'");
+            sql2.append(" FROM caktail WHERE caktail_name = '" + cocktail.getCocktailName() + "'");
             try {
                 Cursor cursor = db.rawQuery(sql2.toString(), null);
                 if(cursor.moveToFirst()){
@@ -403,7 +426,7 @@ public class CocatailDB {
             while (cursor.moveToNext()){
 
                 StringBuilder materialSql = new StringBuilder();
-                materialSql.append("SELECT material_name, sweetness, clear, bitter, sour, sibumi, alcohole FROM material " +
+                materialSql.append("SELECT material_name, sweetness, clear, bitter, sour, sibumi, alcohole, unit FROM material " +
                         "WHERE _id IN(");
                 for(int j = 0; j < cursor.getColumnCount(); j++){
                     materialSql.append(cursor.getInt(j));
@@ -423,7 +446,8 @@ public class CocatailDB {
                                 materialCusor.getInt(3),
                                 materialCusor.getInt(4),
                                 materialCusor.getInt(5),
-                                materialCusor.getInt(6)
+                                materialCusor.getInt(6),
+                                materialCusor.getString(7)
                         ));
                     }
                     materialCusor.close();
@@ -455,7 +479,7 @@ public class CocatailDB {
             while (cursor.moveToNext()){
                 cocktailArrayList.add(new Cocktail(cursor.getString(0)));   // 名前
                 StringBuilder materialSql = new StringBuilder();
-                materialSql.append("SELECT material_name, sweetness, clear, bitter, sour, sibumi, alcohole FROM material " +
+                materialSql.append("SELECT material_name, sweetness, clear, bitter, sour, sibumi, alcohole, unit FROM material " +
                         "WHERE _id IN(");
                 for(int j = 1; j < cursor.getColumnCount(); j++){
                     materialSql.append(cursor.getInt(j));
@@ -475,7 +499,8 @@ public class CocatailDB {
                                 materialCusor.getInt(3),
                                 materialCusor.getInt(4),
                                 materialCusor.getInt(5),
-                                materialCusor.getInt(6)
+                                materialCusor.getInt(6),
+                                materialCusor.getString(7)
                         ));
                     }
                     materialCusor.close();
@@ -523,7 +548,7 @@ public class CocatailDB {
 
                 caktails.add(new Cocktail(cursor.getString(0)));
                 StringBuilder sql2 = new StringBuilder();
-                sql2.append( "SELECT material_name, sweetness, clear, bitter, sour, sibumi, alcohole FROM material WHERE _id IN(");
+                sql2.append( "SELECT material_name, sweetness, clear, bitter, sour, sibumi, alcohole, unit FROM material WHERE _id IN(");
 
                 for(int j = 0; j < materials.size(); j++) {
                     sql2.append(getMaterialId(materials.get(j).getMaterialName()));
@@ -536,7 +561,7 @@ public class CocatailDB {
                     Cursor cursor2 = db.rawQuery(sql2.toString(), null);
                     while (cursor2.moveToNext()){
                         caktails.get(i).addMaterial(new Material(cursor2.getString(0), cursor2.getInt(1), cursor2.getInt(2),
-                                cursor2.getInt(3), cursor2.getInt(4), cursor2.getInt(5), cursor2.getInt(6)));
+                                cursor2.getInt(3), cursor2.getInt(4), cursor2.getInt(5), cursor2.getInt(6), cursor2.getString(7)));
                     }
                     cursor2.close();
                 }catch (Exception e){
@@ -695,7 +720,7 @@ public class CocatailDB {
     // ID から 素材をとる
     private Material getMaterialById(int id){
         Material material = null;
-        String sql = "SELECT material_name, sweetness, clear, bitter, sour, sibumi, alcohole FROM material WHERE _id = " + id;
+        String sql = "SELECT material_name, sweetness, clear, bitter, sour, sibumi, alcohole, unit FROM material WHERE _id = " + id;
         try {
             Cursor cursor = db.rawQuery(sql,null);
             if (cursor.moveToFirst()){
@@ -706,7 +731,8 @@ public class CocatailDB {
                         cursor.getInt(3),
                         cursor.getInt(4),
                         cursor.getInt(5),
-                        cursor.getInt(6)
+                        cursor.getInt(6),
+                        cursor.getString(7)
                 );
             }
         }catch (Exception e){

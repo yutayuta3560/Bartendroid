@@ -20,6 +20,10 @@
             android:name=".CocktaiShow"
             android:label="@string/title_activity_cocktai_show" >
         </activity>
+        <activity
+            android:name=".CocktailSearch"
+            android:label="@string/title_activity_cocktail_search" >
+        </activity>
     </application>
 
 </manifest>
